@@ -36,7 +36,7 @@ export default function UnprofitableItemsTable({ items, itemsCount }: Unprofitab
 
   // Filter and sort items
   const filteredAndSortedItems = useMemo(() => {
-    let filtered = items.filter(item => {
+    const filtered = items.filter(item => {
       const categoryMatch = !selectedCategory || item.categoryName === selectedCategory;
       const familyMatch = !selectedFamily || item.familyName === selectedFamily;
       return categoryMatch && familyMatch;

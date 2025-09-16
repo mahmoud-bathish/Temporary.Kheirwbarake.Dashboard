@@ -17,7 +17,7 @@ export interface UnprofitableItemsResponse {
 export interface ApiResponse<T> {
   message: string;
   statusCode: number;
-  error: any;
+  error: unknown;
   data: T;
   isSuccessful: boolean;
 }
