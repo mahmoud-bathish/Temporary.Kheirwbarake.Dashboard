@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import Link from "next/link";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,8 +32,8 @@ export default function RootLayout({
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <nav className="flex items-center justify-between h-16">
               <div className="flex items-center gap-6">
-                <a href="/" className="text-gray-700 hover:text-gray-900 text-sm font-medium cursor-pointer">العناصر غير المربحة</a>
-                <a href="/barcode" className="text-gray-700 hover:text-gray-900 text-sm font-medium cursor-pointer">تحقق من الباركود</a>
+                <Link href="/" className="text-gray-700 hover:text-gray-900 text-sm font-medium cursor-pointer">العناصر غير المربحة</Link>
+                <Link href="/barcode" className="text-gray-700 hover:text-gray-900 text-sm font-medium cursor-pointer">تحقق من الباركود</Link>
               </div>
               <div className="text-sm text-gray-500">لوحة التحكم</div>
             </nav>

@@ -15,8 +15,9 @@ export async function GET() {
     const text = await upstream.text();
     const contentType = upstream.headers.get('content-type') || 'application/json';
     return new NextResponse(text, { status: 200, headers: { 'content-type': contentType } });
-  } catch (error: any) {
-    return NextResponse.json({ error: error?.message || 'Proxy error' }, { status: 500 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Proxy error';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 

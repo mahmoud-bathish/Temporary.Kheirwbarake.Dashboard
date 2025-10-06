@@ -2,6 +2,21 @@
 
 import { useState } from 'react';
 
+type PrimaryItem = {
+  id: number;
+  itemId: string;
+  barcode: string;
+  active?: boolean;
+  date_created?: string;
+  date_updated?: string;
+  sort?: unknown;
+};
+
+type KbItem = {
+  itemid: string;
+  barcodeitemid: string;
+};
+
 export default function BarcodePage() {
   const [barcode, setBarcode] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
@@ -35,16 +50,18 @@ export default function BarcodePage() {
       const data = await res.json();
       const found = Array.isArray(data) && data.length > 0;
       if (found) {
-        setModalMessage('يبدو أن الباركود صحيح. جرّب مرة أخرى على الويبسايت، وإذا استمرت المشكلة يرجى التواصل مع محمود.');
+        setModalMessage('يبدو أن الباركود صحيح. جرّب مرة أخرى على الويبسايت، وإذا استمرت المشكلة يرجى التواصل مع المسؤول.');
       } else {
         // Fallback to KBBarcode list
         console.log('[Barcode] calling endpoint:', '/api/kb-barcodes');
         const kbRes = await fetch('/api/kb-barcodes', { cache: 'no-store' });
         if (!kbRes.ok) throw new Error(`KB HTTP ${kbRes.status}`);
-        const kbData = await kbRes.json();
-        const items = Array.isArray(kbData?.ItemFile) ? kbData.ItemFile : [];
+        const kbData: unknown = await kbRes.json();
+        const items: KbItem[] = Array.isArray((kbData as { ItemFile?: KbItem[] })?.ItemFile)
+          ? ((kbData as { ItemFile?: KbItem[] }).ItemFile as KbItem[])
+          : [];
         console.log('[Barcode] Input barcode:', barcode);
-        const matches = items.filter((it: any) => it.itemid === barcode);
+        const matches: KbItem[] = items.filter((it: KbItem) => it.itemid === barcode);
         console.log('[Barcode] KB items count:', items.length);
         console.log('[Barcode] KB items:', items);
         console.log('[Barcode] KB matches count:', matches.length);
@@ -52,12 +69,12 @@ export default function BarcodePage() {
         if (matches.length > 0) {
           const header = `${matches.length} اصناف معرفين في النظام الداخلي (يرجي المراجعة):`;
           const humanReadable = matches
-            .map((m: any) => `- رقم الصنف: ${m.itemid}\n- باركود: ${m.barcodeitemid}`)
+            .map((m: KbItem) => `- رقم الصنف: ${m.itemid}\n- باركود: ${m.barcodeitemid}`)
             .join('\n\n');
           let message = `${header}\n\n${humanReadable}`;
 
           // Call first endpoint again for each barcodeitemid to validate and build reprint notes
-          const recheckPromises = matches.map(async (m: any) => {
+          const recheckPromises = matches.map(async (m: KbItem) => {
             try {
               const followRes = await fetch('/api/getItemBarcode', {
                 method: 'POST',
@@ -73,9 +90,10 @@ export default function BarcodePage() {
                 }),
               });
               if (!followRes.ok) return null;
-              const followData = await followRes.json();
-              if (Array.isArray(followData) && followData.length > 0) {
-                return followData.map((fd: any) => `يحتاج لاعادة طباعة الباركود\nرمز الصنف:${fd.itemId}\nالباركود الموجود على الموقع: ${fd.barcode}`);
+              const followData: unknown = await followRes.json();
+              if (Array.isArray(followData) && (followData as unknown[]).length > 0) {
+                const arr = followData as PrimaryItem[];
+                return arr.map((fd: PrimaryItem) => `يحتاج لاعادة طباعة الباركود\nالباركود الحالي:${fd.itemId}\nيرجى طباعة هذا الباركود: ${fd.barcode}`);
               }
               return null;
             } catch {
@@ -84,7 +102,7 @@ export default function BarcodePage() {
           });
 
           const recheckResults = await Promise.all(recheckPromises);
-          const flatMessages = (recheckResults.filter(Boolean).flat() as string[]);
+          const flatMessages = (recheckResults.filter((x): x is string[] => Array.isArray(x)).flat());
           if (flatMessages.length > 0) {
             message += `\n------------------------------\n${flatMessages.join('\n------------------------------\n')}`;
           }
@@ -95,7 +113,7 @@ export default function BarcodePage() {
         }
       }
       setModalOpen(true);
-    } catch (e) {
+    } catch {
       setModalMessage('حدث خطأ أثناء التحقق. يرجى المحاولة مجدداً.');
       setModalOpen(true);
     } finally {
@@ -110,7 +128,7 @@ export default function BarcodePage() {
       await navigator.clipboard.writeText(full);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch (e) {
+    } catch {
       // no-op
     }
   };
