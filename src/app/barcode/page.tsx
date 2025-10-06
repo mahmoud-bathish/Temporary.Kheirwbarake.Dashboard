@@ -91,7 +91,7 @@ export default function BarcodePage() {
 
           setModalMessage(message);
         } else {
-          setModalMessage(`هذا الباركود ${barcode} غير موجود على الموقع ولم يُرجَع من النظام الداخلي.`);
+          setModalMessage(`هذا الباركود ${barcode} غير موجود على الموقع ولم يرجع من النظام الداخلي.`);
         }
       }
       setModalOpen(true);
